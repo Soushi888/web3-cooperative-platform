@@ -15,7 +15,7 @@
         "src/web3-cooperative-platform_frontend/dist"
       ],
       "type": "assets",
-      "workspace": "web3-cooperative-platform_frontend"
+      "workspace": "src/web3-cooperative-platform_frontend"
     },
     "internet_identity": {
       "type": "custom",

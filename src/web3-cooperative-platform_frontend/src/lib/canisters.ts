@@ -1,66 +1,102 @@
-// Add type declaration for window.__CANISTERS__
-declare global {
-  interface Window {
-    __CANISTERS__?: {
-      coop_backend?: any;
-    };
-  }
-}
+import { createActor as createBackendActor } from '../declarations/coop_backend';
+import { HttpAgent } from '@dfinity/agent';
+import { AuthClient } from '@dfinity/auth-client';
+import type { _SERVICE } from '../declarations/coop_backend/coop_backend.did';
 
-// Create a dummy actor for build time or when real actor is not available
-function dummyActor() {
-  return new Proxy(
-    {},
-    {
-      get() {
-        return async () => {
-          console.warn("Canister invoked with dummy actor");
-          return undefined;
-        };
-      },
-    }
-  );
-}
+// Local canister IDs - will be replaced by the environment variables in production
+const LOCAL_II_CANISTER_ID = 'rdmx6-jaaaa-aaaaa-aaadq-cai';
+const DEFAULT_HOST = 'http://localhost:4943';
 
-// Simple implementation that just returns the dummy actor
-// This will be used when we can't create a real actor
-function createDummyActor() {
-  console.warn("Using dummy actor implementation");
-  return dummyActor();
-}
+// Initialize auth client
+let authClient: AuthClient;
+export const initAuthClient = async () => {
+	if (!authClient) {
+		authClient = await AuthClient.create();
+	}
+	return authClient;
+};
 
-// Export the backend actor - using a simple approach that works in both client and server
-let backend: any;
+// Check if user is authenticated
+export const isAuthenticated = async () => {
+	const client = await initAuthClient();
+	return await client.isAuthenticated();
+};
 
-// In a browser environment, try to use the real actor
-if (typeof window !== "undefined") {
-  try {
-    // Try to dynamically import the declarations
-    const declarations =
-      window.__CANISTERS__ && window.__CANISTERS__.coop_backend;
+// Login with Internet Identity
+export const login = async () => {
+	const client = await initAuthClient();
 
-    if (declarations) {
-      console.log("Using canister declarations from window.__CANISTERS__");
-      backend = declarations;
-    } else {
-      console.warn("Canister declarations not found in window.__CANISTERS__");
-      backend = createDummyActor();
-    }
-  } catch (e) {
-    console.error("Error initializing backend actor:", e);
-    backend = createDummyActor();
-  }
-} else {
-  // In server environment, use the dummy actor
-  console.warn("Running in server environment, using dummy actor");
-  backend = createDummyActor();
-}
+	const days = BigInt(1);
+	const hours = BigInt(24);
+	const nanoseconds = BigInt(3600000000000);
 
-// Export the backend
-export { backend };
+	return new Promise((resolve) => {
+		client.login({
+			identityProvider: `http://${LOCAL_II_CANISTER_ID}.localhost:4943`,
+			maxTimeToLive: days * hours * nanoseconds,
+			onSuccess: () => resolve(true),
+			onError: (error) => {
+				console.error('Login failed:', error);
+				resolve(false);
+			}
+		});
+	});
+};
 
-// Export the Member type for TypeScript support
-export const MemberType = {
-  principal: null,
-  approved: false,
+// Logout
+export const logout = async () => {
+	const client = await initAuthClient();
+	await client.logout();
+};
+
+// Get authenticated user's identity
+export const getIdentity = async () => {
+	const client = await initAuthClient();
+	return client.getIdentity();
+};
+
+// Create an actor with the user's identity
+export const getBackendActor = async (): Promise<_SERVICE | null> => {
+	const client = await initAuthClient();
+
+	if (!(await client.isAuthenticated())) {
+		return null;
+	}
+
+	const identity = client.getIdentity();
+	const agent = new HttpAgent({ host: DEFAULT_HOST, identity });
+
+	// When developing locally, we need to fetch the root key
+	if (DEFAULT_HOST.includes('localhost')) {
+		await agent.fetchRootKey();
+	}
+
+	// Create the actor with the agent
+	const canisterId = process.env.COOP_BACKEND_CANISTER_ID || 'rrkah-fqaaa-aaaaa-aaaaq-cai'; // Default local canister ID
+	const actor = createBackendActor(canisterId, {
+		agent
+	});
+
+	return actor;
+};
+
+// Get anonymous actor (no authentication)
+export const getAnonymousBackendActor = (): _SERVICE => {
+	const agent = new HttpAgent({ host: DEFAULT_HOST });
+
+	// When developing locally, we need to fetch the root key
+	if (DEFAULT_HOST.includes('localhost')) {
+		agent.fetchRootKey().catch((err) => {
+			console.warn('Unable to fetch root key. Check if your local replica is running');
+			console.error(err);
+		});
+	}
+
+	// Create the actor with the agent
+	const canisterId = process.env.COOP_BACKEND_CANISTER_ID || 'rrkah-fqaaa-aaaaa-aaaaq-cai'; // Default local canister ID
+	const actor = createBackendActor(canisterId, {
+		agent
+	});
+
+	return actor;
 };

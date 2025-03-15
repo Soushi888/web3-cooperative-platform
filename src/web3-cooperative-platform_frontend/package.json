@@ -1,33 +1,50 @@
 {
-  "name": "web3-cooperative-platform_frontend",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
-  "scripts": {
-    "setup": "npm i && dfx canister create web3-cooperative-platform_backend && dfx generate web3-cooperative-platform_backend && dfx deploy",
-    "start": "vite --port 3000",
-    "prebuild": "dfx generate",
-    "build": "vite build",
-    "format": "prettier --write \"src/**/*.{json,js,jsx,ts,tsx,css,scss}\"",
-    "check": "bunx sv check"
-  },
-  "dependencies": {
-    "@dfinity/agent": "^2.3.0",
-    "@dfinity/auth-client": "^2.3.0",
-    "@dfinity/candid": "^2.3.0",
-    "@dfinity/principal": "^2.3.0"
-  },
-  "devDependencies": {
-    "@sveltejs/adapter-static": "^3.0.8",
-    "@sveltejs/kit": "^2.19.1",
-    "@sveltejs/vite-plugin-svelte": "^5.0.3",
-    "@types/node": "^22.13.10",
-    "dotenv": "^16.4.7",
-    "sass": "^1.85.1",
-    "svelte": "^5.23.0",
-    "svelte-check": "^4.1.5",
-    "typescript": "^5.8.2",
-    "vite": "^6.2.2",
-    "vite-plugin-environment": "^1.1.3"
-  }
+	"name": "web3-cooperative-platform-frontend",
+	"private": true,
+	"version": "0.0.1",
+	"type": "module",
+	"scripts": {
+		"dev": "vite dev",
+		"build": "vite build",
+		"preview": "vite preview",
+		"prepare": "svelte-kit sync || echo ''",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+		"format": "prettier --write .",
+		"lint": "prettier --check . && eslint .",
+		"test:unit": "vitest",
+		"test": "npm run test:unit -- --run"
+	},
+	"devDependencies": {
+		"@eslint/compat": "^1.2.5",
+		"@eslint/js": "^9.18.0",
+		"@sveltejs/adapter-auto": "^4.0.0",
+		"@sveltejs/adapter-static": "^3.0.8",
+		"@sveltejs/kit": "^2.16.0",
+		"@sveltejs/vite-plugin-svelte": "^5.0.0",
+		"@tailwindcss/vite": "^4.0.0",
+		"@testing-library/jest-dom": "^6.6.3",
+		"@testing-library/svelte": "^5.2.4",
+		"eslint": "^9.18.0",
+		"eslint-config-prettier": "^10.0.1",
+		"eslint-plugin-svelte": "^3.0.0",
+		"globals": "^16.0.0",
+		"jsdom": "^26.0.0",
+		"prettier": "^3.4.2",
+		"prettier-plugin-svelte": "^3.3.3",
+		"prettier-plugin-tailwindcss": "^0.6.11",
+		"svelte": "^5.0.0",
+		"svelte-check": "^4.0.0",
+		"tailwindcss": "^4.0.0",
+		"typescript": "^5.0.0",
+		"typescript-eslint": "^8.20.0",
+		"vite": "^6.0.0",
+		"vitest": "^3.0.0"
+	},
+	"dependencies": {
+		"@dfinity/agent": "^2.3.0",
+		"@dfinity/auth-client": "^2.3.0",
+		"@dfinity/identity": "^2.3.0",
+		"@dfinity/principal": "^2.3.0"
+	}
 }

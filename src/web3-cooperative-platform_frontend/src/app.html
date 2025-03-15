@@ -1,33 +1,12 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<head>
-	<meta charset="UTF-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<!-- Add Content Security Policy to allow connections to the backend canister -->
-	<meta http-equiv="Content-Security-Policy" content="
-		default-src 'self';
-		connect-src 'self' http://localhost:4943 https://localhost:4943 http://*.localhost:4943 https://*.localhost:4943 https://*.ic0.app https://ic0.app;
-		script-src 'self' 'unsafe-eval' 'unsafe-inline';
-		style-src 'self' 'unsafe-inline';
-		img-src 'self' data:;
-		font-src 'self';
-		object-src 'none';
-		base-uri 'self';
-		form-action 'self';
-		frame-ancestors 'self';
-	">
-	<link rel="icon" href="%sveltekit.assets%/favicon.ico" />
-	<title>Web3 Cooperative Platform</title>
-	%sveltekit.head%
-</head>
-
-<body data-sveltekit-preload-data="hover">
-	<div class="browser-warning">
-		⚠️ If this page appears broken, try reloading. If the problem persists, try switching browsers; Chrome or
-		Firefox are recommended.
-	</div>
-	<div style="display: contents">%sveltekit.body%</div>
-</body>
-
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" href="%sveltekit.assets%/favicon.png" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		%sveltekit.head%
+	</head>
+	<body data-sveltekit-preload-data="hover">
+		<div style="display: contents">%sveltekit.body%</div>
+	</body>
 </html>
