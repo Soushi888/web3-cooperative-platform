@@ -4,60 +4,38 @@ import type { Member } from './types';
 // Define state using Svelte 5 runes
 // This file will be imported by components that need access to the shared state
 
-export enum UserStatus {
-	NOT_LOGGED_IN = 'not-logged-in',
-	NOT_REGISTERED = 'not-registered',
-	PENDING = 'pending',
-	APPROVED = 'approved'
+interface CoopStore {
+  isLoggedIn: boolean;
+  isLoading: boolean;
+  userPrincipal: Principal | null;
+  members: Member[];
+  userStatus: UserStatus | null;
+  errorMessage: string;
 }
 
-function createCoopStore() {
-	let isLoggedIn = $state(false);
-	let isLoading = $state(false);
-	let userPrincipal = $state<Principal | null>(null);
-	let members = $state<Member[]>([]);
-	let userStatus: UserStatus | null = $state(null);
-	let errorMessage = $state('');
+export enum UserStatus {
+  NOT_LOGGED_IN = 'not-logged-in',
+  NOT_REGISTERED = 'not-registered',
+  PENDING = 'pending',
+  APPROVED = 'approved'
+}
 
-	const setUserStatus = (status: UserStatus) => {
-		userStatus = status;
-	};
+function createCoopStore(): CoopStore {
+  const isLoggedIn: boolean = $state(false);
+  const isLoading: boolean = $state(false);
+  const userPrincipal: Principal | null = $state(null);
+  const members: Member[] = $state([]);
+  const userStatus: UserStatus | null = $state(null);
+  const errorMessage: string = $state('');
 
-	const setUserPrincipal = (principal: Principal | null) => {
-		userPrincipal = principal;
-	};
-
-	const setMembers = (newMembers: Member[]) => {
-		members = newMembers;
-	};
-
-	const login = () => {
-		isLoggedIn = true;
-		userStatus = UserStatus.NOT_REGISTERED;
-	};
-
-	const setIsLoading = (newIsLoading: boolean) => {
-		isLoading = newIsLoading;
-	};
-
-	const setErrorMessage = (message: string) => {
-		errorMessage = message;
-	};
-
-	return {
-		isLoggedIn,
-		userPrincipal,
-		members,
-		userStatus,
-		errorMessage,
-		isLoading,
-		setUserStatus,
-		setUserPrincipal,
-		setMembers,
-		login,
-		setIsLoading,
-		setErrorMessage
-	};
+  return {
+    isLoggedIn,
+    userPrincipal,
+    members,
+    userStatus,
+    errorMessage,
+    isLoading
+  };
 }
 
 const coopStore = createCoopStore();
