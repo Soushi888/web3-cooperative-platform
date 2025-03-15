@@ -1,164 +1,128 @@
 <script lang="ts">
-  import coopStore, { UserStatus } from '$lib/stores.svelte';
-  import { Principal } from '@dfinity/principal';
-  import { getBackendActor } from '$lib/canisters';
+  import type { Principal } from '@dfinity/principal';
+  import { canisterService } from '$lib/services/canisters.svelte';
+  import coopStore from '$lib/stores.svelte';
+  import type { Member } from '$lib/types';
 
-  // Define the Member type to match the backend
-  interface Member {
-    principal: Principal;
-    approved: boolean;
-  }
+  let isRegistering = $state(false);
+  let isApproving = $state(false);
 
-  // Local component state
-  let members = $state<Member[]>([]);
-  let selectedMember: Member | null = $state(null);
-
-  // Helper function to safely check user status
-  const isUserApproved = () => coopStore.userStatus === UserStatus.APPROVED;
-
-  // Function to register as a member
   const registerAsMember = async () => {
     try {
-      const actor = await getBackendActor();
+      isRegistering = true;
+      const actor = await canisterService.getBackendActor();
       if (actor) {
         await actor.register();
-        await loadMembers();
+        const newMembers = await actor.getMembers();
+        coopStore.members = newMembers;
       }
     } catch (error) {
       console.error('Failed to register:', error);
+      coopStore.errorMessage = 'Failed to register as member';
+    } finally {
+      isRegistering = false;
     }
   };
 
-  // Function to approve a member
   const approveMember = async (memberPrincipal: Principal) => {
     try {
-      const actor = await getBackendActor();
+      isApproving = true;
+      const actor = await canisterService.getBackendActor();
       if (actor) {
-        const result = await actor.approveMember(memberPrincipal);
-        if (result) {
-          await loadMembers();
-        }
+        await actor.approveMember(memberPrincipal);
+        const newMembers = await actor.getMembers();
+        coopStore.members = newMembers;
       }
     } catch (error) {
       console.error('Failed to approve member:', error);
+      coopStore.errorMessage = 'Failed to approve member';
+    } finally {
+      isApproving = false;
     }
   };
 
-  // Function to load all members
   const loadMembers = async () => {
     try {
-      const actor = await getBackendActor();
+      const actor = await canisterService.getBackendActor();
       if (actor) {
-        const result = await actor.getMembers();
-        members = result;
+        const newMembers = await actor.getMembers();
+        coopStore.members = newMembers;
       }
     } catch (error) {
       console.error('Failed to load members:', error);
+      coopStore.errorMessage = 'Failed to load members';
     }
   };
 
-  // Load members when the component mounts
   $effect(() => {
     loadMembers();
   });
 </script>
 
 <div class="member-management">
-  <div class="header">
-    <h2>Member Management</h2>
-    {#if !isUserApproved()}
-      <button class="primary-btn" onclick={registerAsMember}>Register as Member</button>
-    {/if}
-  </div>
+  {#if !coopStore.isLoggedIn}
+    <p>Please log in to manage membership.</p>
+  {:else if !coopStore.userPrincipal}
+    <p>Loading user information...</p>
+  {:else}
+    <div class="actions">
+      {#if isRegistering}
+        <p>Registering...</p>
+      {:else}
+        <button onclick={registerAsMember} disabled={isRegistering}>
+          Register as Member
+        </button>
+      {/if}
+    </div>
 
-  <div class="members-list">
-    {#if members.length === 0}
-      <div class="empty-state">No members registered yet.</div>
-    {:else}
-      <div class="table-container">
+    <div class="members-list">
+      <h2>Members</h2>
+      {#if coopStore.members.length === 0}
+        <p>No members found.</p>
+      {:else}
         <table>
           <thead>
             <tr>
-              <th>Principal ID</th>
+              <th>Principal</th>
               <th>Status</th>
-              {#if isUserApproved()}
-                <th>Actions</th>
-              {/if}
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {#each members as member}
+            {#each coopStore.members as member}
               <tr>
-                <td class="principal-cell">{member.principal.toText()}</td>
+                <td>{member.principal.toText()}</td>
+                <td>{member.approved ? 'Approved' : 'Pending'}</td>
                 <td>
-                  <span class="status-badge {member.approved ? 'approved' : 'pending'}">
-                    {member.approved ? 'Approved' : 'Pending'}
-                  </span>
-                </td>
-                {#if isUserApproved() && !member.approved}
-                  <td>
-                    <button class="approve-btn" onclick={() => approveMember(member.principal)}>
-                      Approve
+                  {#if !member.approved && coopStore.userStatus === 'approved'}
+                    <button
+                      onclick={() => approveMember(member.principal)}
+                      disabled={isApproving}
+                    >
+                      {isApproving ? 'Approving...' : 'Approve'}
                     </button>
-                  </td>
-                {:else if isUserApproved()}
-                  <td>-</td>
-                {/if}
+                  {/if}
+                </td>
               </tr>
             {/each}
           </tbody>
         </table>
-      </div>
-    {/if}
-  </div>
+      {/if}
+    </div>
+  {/if}
 </div>
 
 <style>
   .member-management {
-    background-color: white;
-    border-radius: 0.5rem;
-    padding: 1.5rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 1rem;
+  }
+
+  .actions {
     margin-bottom: 2rem;
   }
 
-  .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-  }
-
-  h2 {
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin: 0;
-    color: #4f46e5;
-  }
-
-  .primary-btn {
-    background-color: #4f46e5;
-    color: white;
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: 0.375rem;
-    font-weight: 500;
-    cursor: pointer;
-  }
-
-  .primary-btn:hover {
-    background-color: #4338ca;
-  }
-
-  .empty-state {
-    text-align: center;
-    padding: 2rem;
-    color: #6b7280;
-    font-style: italic;
-  }
-
-  .table-container {
-    overflow-x: auto;
+  .members-list {
+    margin-top: 2rem;
   }
 
   table {
@@ -168,51 +132,31 @@
 
   th,
   td {
-    padding: 0.75rem;
+    padding: 0.5rem;
     text-align: left;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid #e2e8f0;
   }
 
   th {
     background-color: #f8fafc;
     font-weight: 600;
-    color: #4b5563;
   }
 
-  .principal-cell {
-    font-family: monospace;
-    font-size: 0.875rem;
-  }
-
-  .status-badge {
-    display: inline-block;
-    padding: 0.25rem 0.5rem;
-    border-radius: 9999px;
-    font-size: 0.75rem;
-    font-weight: 500;
-  }
-
-  .status-badge.approved {
-    background-color: #dcfce7;
-    color: #166534;
-  }
-
-  .status-badge.pending {
-    background-color: #fef3c7;
-    color: #92400e;
-  }
-
-  .approve-btn {
-    background-color: #10b981;
+  button {
+    background-color: #4f46e5;
     color: white;
-    padding: 0.25rem 0.75rem;
+    padding: 0.5rem 1rem;
     border: none;
     border-radius: 0.375rem;
-    font-size: 0.875rem;
     cursor: pointer;
   }
 
-  .approve-btn:hover {
-    background-color: #059669;
+  button:hover {
+    background-color: #4338ca;
+  }
+
+  button:disabled {
+    background-color: #9ca3af;
+    cursor: not-allowed;
   }
 </style>

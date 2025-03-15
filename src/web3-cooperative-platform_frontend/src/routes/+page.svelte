@@ -1,5 +1,6 @@
 <script lang="ts">
-  import coopStore, { UserStatus } from '$lib/stores.svelte';
+  import coopStore from '$lib/stores.svelte';
+  import { UserStatus } from '$lib/types';
   import MembersList from '$lib/components/MembersList.svelte';
   import MemberManagement from '$lib/components/MemberManagement.svelte';
 </script>

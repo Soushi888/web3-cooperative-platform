@@ -1,7 +1,9 @@
 import { AuthClient } from '@dfinity/auth-client';
-import { Principal } from '@dfinity/principal';
-import coopStore, { UserStatus } from '$lib/stores.svelte';
-import { getBackendActor } from '$lib/canisters';
+import type { Principal } from '@dfinity/principal';
+import coopStore from '$lib/stores.svelte';
+import { canisterService } from '$lib/services/canisters.svelte';
+import type { Member } from '$lib/types';
+import { UserStatus } from '$lib/types';
 
 interface AuthService {
   initialize: () => Promise<void>;
@@ -66,12 +68,12 @@ function createAuthService(): AuthService {
 
   const handleAuthenticationSuccess = async (principal: Principal): Promise<void> => {
     coopStore.userPrincipal = principal;
-    const actor = await getBackendActor();
+    const actor = await canisterService.getBackendActor();
     if (actor) {
       try {
         // Get all members to check if user is registered
         const members = await actor.getMembers();
-        const userMember = members.find((m) => m.principal.toText() === principal.toText());
+        const userMember = members.find((m: Member) => m.principal.toText() === principal.toText());
 
         if (!userMember) {
           coopStore.userStatus = UserStatus.NOT_REGISTERED;

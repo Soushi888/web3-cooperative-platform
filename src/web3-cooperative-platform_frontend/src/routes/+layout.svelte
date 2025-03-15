@@ -2,7 +2,7 @@
 	import '../app.css';
 	import { onMount } from 'svelte';
 	import coopStore from '$lib/stores.svelte';
-	import { initAuthClient, isAuthenticated, getIdentity, getBackendActor } from '$lib/canisters';
+	import { canisterService } from '$lib/services/canisters.svelte';
 	import LoginButton from '$lib/components/LoginButton.svelte';
 
 	let { children } = $props();
@@ -12,17 +12,17 @@
 			coopStore.isLoading = true;
 
 			// Initialize auth client and check if user is logged in
-			await initAuthClient();
-			const authenticated = await isAuthenticated();
+			await canisterService.initAuthClient();
+			const authenticated = await canisterService.isAuthenticated();
 			coopStore.isLoggedIn = authenticated;
 
 			if (authenticated) {
 				// Get user identity and principal
-				const identity = await getIdentity();
+				const identity = await canisterService.getIdentity();
 				coopStore.userPrincipal = identity.getPrincipal();
 
 				// Get backend actor and fetch members
-				const actor = await getBackendActor();
+				const actor = await canisterService.getBackendActor();
 				if (actor) {
 					const membersList = await actor.getMembers();
 					coopStore.members = membersList;

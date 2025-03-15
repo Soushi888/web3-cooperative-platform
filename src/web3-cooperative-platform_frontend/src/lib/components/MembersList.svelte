@@ -1,41 +1,30 @@
 <script lang="ts">
   import coopStore from '$lib/stores.svelte';
+  import type { Member } from '$lib/types';
+  import { UserStatus } from '$lib/types';
+  import { canisterService } from '$lib/services/canisters.svelte';
+  import type { Principal } from '@dfinity/principal';
 
   // Local component state using Svelte 5 runes
   let filterText = $state('');
   let showApprovedOnly = $state(false);
+  let isApproving = $state(false);
 
   // Derived state for filtered members list using functional programming approach
-  const filteredMembers = $derived(() => {
-    // Create a pipeline of filter operations
-    return (
-      coopStore.members
-        // Filter by approval status if needed
-        .filter((member) => !showApprovedOnly || member.approved)
-        // Filter by search text if provided
-        .filter(
-          (member) =>
-            !filterText ||
-            member.principal.toText().toLowerCase().includes(filterText.toLowerCase())
-        )
-        // Sort by approval status (approved first)
-        .sort((a, b) => {
-          if (a.approved === b.approved) return 0;
-          return a.approved ? -1 : 1;
-        })
-    );
-  });
+  const filteredMembers = () => {
+    return coopStore.members.filter((member) => {
+      const matchesFilter = member.principal
+        .toText()
+        .toLowerCase()
+        .includes(filterText.toLowerCase());
+      return showApprovedOnly ? matchesFilter && member.approved : matchesFilter;
+    });
+  };
 
   // Derived state to check if the current user is an admin
-  const isCurrentUserAdmin = $derived(() => {
-    if (!coopStore.userPrincipal) return false;
-
-    const currentUser = coopStore.members.find(
-      (m) => m.principal && m.principal.toText() === coopStore.userPrincipal?.toText()
-    );
-
-    return currentUser?.isAdmin || false;
-  });
+  const isCurrentUserApproved = () => {
+    return coopStore.userStatus === UserStatus.APPROVED;
+  };
 
   // Pure function to format principal ID for display
   const formatPrincipal = (principal: string): string => {
@@ -44,10 +33,30 @@
   };
 
   // Toggle filter handlers using functional approach
-  const toggleApprovedFilter = () => (showApprovedOnly = !showApprovedOnly);
-  const updateFilterText = (e: Event) => {
-    const target = e.target as HTMLInputElement;
-    filterText = target.value;
+  const toggleApprovedFilter = () => {
+    showApprovedOnly = !showApprovedOnly;
+  };
+
+  const updateFilterText = (event: Event) => {
+    const input = event.target as HTMLInputElement;
+    filterText = input.value;
+  };
+
+  const approveMember = async (memberPrincipal: Principal) => {
+    try {
+      isApproving = true;
+      const actor = await canisterService.getBackendActor();
+      if (actor) {
+        await actor.approveMember(memberPrincipal);
+        const newMembers = await actor.getMembers();
+        coopStore.members = newMembers;
+      }
+    } catch (error) {
+      console.error('Failed to approve member:', error);
+      coopStore.errorMessage = 'Failed to approve member';
+    } finally {
+      isApproving = false;
+    }
   };
 </script>
 
@@ -75,7 +84,7 @@
         <tr>
           <th>Principal</th>
           <th>Status</th>
-          {#if isCurrentUserAdmin()}
+          {#if isCurrentUserApproved()}
             <th>Actions</th>
           {/if}
         </tr>
@@ -85,11 +94,13 @@
           <tr class={member.approved ? 'approved' : 'pending'}>
             <td>{formatPrincipal(member.principal.toText())}</td>
             <td>{member.approved ? 'Approved' : 'Pending'}</td>
-            {#if isCurrentUserAdmin() && !member.approved}
+            {#if isCurrentUserApproved() && !member.approved}
               <td>
-                <button class="approve-btn">Approve</button>
+                <button class="approve-btn" onclick={() => approveMember(member.principal)} disabled={isApproving}>
+                  {isApproving ? 'Approving...' : 'Approve'}
+                </button>
               </td>
-            {:else if isCurrentUserAdmin()}
+            {:else if isCurrentUserApproved()}
               <td>-</td>
             {/if}
           </tr>
@@ -172,5 +183,10 @@
 
   .approve-btn:hover {
     background-color: #059669;
+  }
+
+  .approve-btn:disabled {
+    background-color: #9ca3af;
+    cursor: not-allowed;
   }
 </style>
