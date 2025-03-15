@@ -3,17 +3,17 @@
     "node": ">=16.0.0",
     "npm": ">=7.0.0"
   },
-  "name": "hello",
+  "name": "web3-cooperative-platform",
   "scripts": {
     "build": "npm run build --workspaces --if-present",
     "prebuild": "npm run prebuild --workspaces --if-present",
     "pretest": "npm run prebuild --workspaces --if-present",
     "start": "npm start --workspaces --if-present",
     "test": "npm test --workspaces --if-present",
-    "check": "cd src/hello_frontend && npm run check"
+    "check": "cd src/web3-cooperative-platform_frontend && npm run check"
   },
   "type": "module",
   "workspaces": [
-    "src/hello_frontend"
+    "src/web3-cooperative-platform_frontend"
   ]
 }

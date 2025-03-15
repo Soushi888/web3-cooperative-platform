@@ -18,7 +18,7 @@ echo "Internet Identity canister ID: $II_CANISTER_ID"
 
 # Create a local .env file in the frontend directory with the correct canister ID
 echo "Creating .env file with canister IDs..."
-cat > src/hello_frontend/.env << EOF
+cat > src/web3-cooperative-platform_frontend/.env << EOF
 DFX_NETWORK=local
 CANISTER_ID_INTERNET_IDENTITY=$II_CANISTER_ID
 CANISTER_ID_COOP_BACKEND=$(dfx canister id coop_backend)
@@ -27,7 +27,7 @@ EOF
 
 # Build the frontend
 echo "Building the frontend..."
-cd src/hello_frontend && npm run build
+cd src/web3-cooperative-platform_frontend && npm run build
 cd ../..
 
 # Deploy the frontend

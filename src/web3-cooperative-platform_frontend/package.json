@@ -1,10 +1,10 @@
 {
-  "name": "hello_frontend",
+  "name": "web3-cooperative-platform_frontend",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "setup": "npm i && dfx canister create hello_backend && dfx generate hello_backend && dfx deploy",
+    "setup": "npm i && dfx canister create web3-cooperative-platform_backend && dfx generate web3-cooperative-platform_backend && dfx deploy",
     "start": "vite --port 3000",
     "prebuild": "dfx generate",
     "build": "vite build",

@@ -64,7 +64,7 @@ Alternatively, you can follow these steps manually:
 
 3. Build the frontend:
    ```
-   cd src/hello_frontend && npm run build
+   cd src/web3-cooperative-platform_frontend && npm run build
    cd ../..
    ```
 

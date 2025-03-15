@@ -4,7 +4,7 @@
       "declarations": {
         "node_compatibility": true
       },
-      "main": "src/hello_backend/main.mo",
+      "main": "src/web3-cooperative-platform_backend/main.mo",
       "type": "motoko"
     },
     "coop_frontend": {
@@ -12,10 +12,10 @@
         "coop_backend"
       ],
       "source": [
-        "src/hello_frontend/dist"
+        "src/web3-cooperative-platform_frontend/dist"
       ],
       "type": "assets",
-      "workspace": "hello_frontend"
+      "workspace": "web3-cooperative-platform_frontend"
     },
     "internet_identity": {
       "type": "custom",
