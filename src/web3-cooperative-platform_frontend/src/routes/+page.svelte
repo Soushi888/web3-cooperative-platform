@@ -2,13 +2,11 @@
 	import coopStore, { UserStatus } from '$lib/stores.svelte';
 	import MembersList from '$lib/components/MembersList.svelte';
 	import ProposalVoting from '$lib/components/ProposalVoting.svelte';
-	import LoginButton from '$lib/components/LoginButton.svelte';
 </script>
 
 <div class="home-container">
 	<div class="header">
 		<h1>Web3 Cooperative Platform</h1>
-		<LoginButton />
 	</div>
 
 	<div class="status-card">

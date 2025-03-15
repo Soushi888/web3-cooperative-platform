@@ -3,6 +3,7 @@
 	import { onMount } from 'svelte';
 	import coopStore from '$lib/stores.svelte';
 	import { initAuthClient, isAuthenticated, getIdentity, getBackendActor } from '$lib/canisters';
+	import LoginButton from '$lib/components/LoginButton.svelte';
 
 	let { children } = $props();
 
@@ -53,7 +54,7 @@
 			{:else if coopStore.isLoggedIn}
 				<button onclick={handleLogout}>Logout</button>
 			{:else}
-				<button onclick={handleLogin}>Login with Internet Identity</button>
+				<LoginButton />	
 			{/if}
 		</div>
 	</header>
